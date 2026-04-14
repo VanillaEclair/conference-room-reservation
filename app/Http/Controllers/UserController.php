@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Room;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -21,19 +22,21 @@ class UserController extends Controller
             'password'  =>['required']  
         ]);
 
+        $rooms = Room::all();
+
         if(auth()->attempt(['name'=> $user['name'], 'password' => $user['password']]))
         {
-            return redirect('/');
+            return view('/home', ['rooms' => $rooms]);
         }
         return back()->withErrors(['username' => 'Invalid credentials']);
     }
 
-    public function create()
+    public function createView()
     {
         return view('/createUser');
     }
 
-    public function store(Request $request)
+    public function createUser(Request $request)
     {
         $user = $request->validate(
             [

@@ -7,7 +7,7 @@
 </head>
 <body>
     
-    <form action="/store" method="POST">
+    <form action="/create-user" method="POST">
         @csrf
         <input type="text" name="username" placeholder="username">
         <input type="text" name="email" placeholder="email">
