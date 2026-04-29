@@ -13,7 +13,8 @@ class UserController extends Controller
         auth()->logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
-        return redirect('/');
+        return response()->json(['success'=> true]);
+        // return redirect('/');
     }
     public function login(Request $request)
     {
@@ -26,15 +27,14 @@ class UserController extends Controller
 
         if(auth()->attempt(['name'=> $user['name'], 'password' => $user['password']]))
         {
-            return view('/home', ['rooms' => $rooms]);
+                    $request->session()->regenerate();
+        return response()->json(['success' => true]);
         }
-        return back()->withErrors(['username' => 'Invalid credentials']);
+        return response()->json(['success' => false, 'message' => 'Invalid credentials'], 401);
+        // return back()->withErrors(['username' => 'Invalid credentials']);
     }
 
-    public function createView()
-    {
-        return view('/createUser');
-    }
+
 
     public function createUser(Request $request)
     {
@@ -52,6 +52,12 @@ class UserController extends Controller
         ]);
 
             auth()->login($createdUser);   
-            return redirect('/');
+            return response()->json(['success'=> true]);
+    }
+
+    public function getUser(Request $request, $id)
+    {
+        $user = User::find($id);
+        return response()->json($user);
     }
 }

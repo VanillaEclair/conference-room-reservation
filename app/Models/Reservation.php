@@ -12,4 +12,10 @@ class Reservation extends Model
             'start_datetime' => 'datetime',
             'end_datetime'   => 'datetime',
         ];
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

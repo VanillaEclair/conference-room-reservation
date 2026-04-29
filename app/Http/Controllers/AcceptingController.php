@@ -9,8 +9,9 @@ class AcceptingController extends Controller
 {
     public function index()
     {
-        $reservations = Reservation::latest()->get();
+        $reservations = Reservation::with('user')->latest()->get();
+        return response()->json($reservations);
 
-        return view("accepting", ['reservations' => $reservations]);
+        // return view("accepting", ['reservations' => $reservations]);
     }
 }

@@ -1,4 +1,4 @@
-{{-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,8 +7,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.ts'])
 </head>
 <body>
-    <div id="app"></div>
+    <div id="app">
+        
+    </div>
 </body>
-</html> --}}
-
-Hello worls
+</html>

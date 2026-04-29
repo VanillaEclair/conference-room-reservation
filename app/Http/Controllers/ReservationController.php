@@ -10,22 +10,22 @@ use Illuminate\Http\Request;
 class ReservationController extends Controller
 {
 
-//Add user to reservation relationship
+    //Add user to reservation relationship
     public function createReservation(Request $request)
     {
         $incomingFields = $request->validate([
-            'purpose'        => ['required'],
-            'title'        => ['required'],
+            'purpose' => ['required'],
+            'title' => ['required'],
             'start_datetime' => ['required'],
-            'end_datetime'   => ['required'],
-            'status'         => ['nullable'],
-            'room_id'        => ['nullable'],
-            'pdf'            => ['nullable'],
+            'end_datetime' => ['required'],
+            'status' => ['nullable'],
+            'room_id' => ['nullable'],
+            'pdf' => ['nullable'],
         ]);
 
 
         $incomingFields['start_datetime'] = Carbon::parse($incomingFields['start_datetime']);
-        $incomingFields['end_datetime']   = Carbon::parse($incomingFields['end_datetime']);
+        $incomingFields['end_datetime'] = Carbon::parse($incomingFields['end_datetime']);
         $incomingFields['user_id'] = Auth::id();
         $incomingFields['status'] = 'Pending';
 
@@ -37,45 +37,93 @@ class ReservationController extends Controller
 
 
         // $isSchedConflict = Reservation::where('start_datetime', '<', $incomingFields['end_datetime'])->where('end_datetime', '>', $incomingFields['start_datetime'])->where('room_id', '=', $incomingFields['room_id'])->exists();
-        
+
         // $schedError = Reservation::where('purpose', '=', 'SSSSS$')->exists();
-      
-        $isSchedConflict = $this->isRoomAvailable($incomingFields['room_id'], $incomingFields['start_datetime'], $incomingFields['end_datetime']);
 
-        if($isSchedConflict)
-        {
-            return back()->withErrors(['start_datetime' => 'Room is already booked for this time slot']);
+        // $isSchedConflict = $this->isRoomAvailable($incomingFields['room_id'], $incomingFields['start_datetime'], $incomingFields['end_datetime']);
 
-        }
+        // if (!$isSchedConflict) // ← also note: isRoomAvailable returns true when available
+        // {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Room is already booked for this time slot'
+        //     ], 422);
+        // }
 
         Reservation::create($incomingFields);
-        return redirect('/accepting');
+        return response()->json(['success' => true]);
+
 
 
     }
 
-    public function showReservations(Reservation $reservation)
-    {
-        return view('accepting', ['reservation' => $reservation]);       
-    }
+    //depriciated
+    // public function showReservations(Reservation $reservation)
+    // {
+    //     return view('accepting', ['reservation' => $reservation]);
+    // }
 
     public function checkSched(Request $request)
     {
         $available = $this->isRoomAvailable(
             $request->room_id,
             $request->starttime,
-            $request->endtime);
+            $request->endtime
+        );
 
-        return response()->json(['available'=> $available]);
+        return response()->json(['available' => $available]);
 
     }
 
     //data
     private function isRoomAvailable($room_id, $start_datetime, $end_datetime)
-{
-    return !Reservation::where('room_id', $room_id)
-        ->where('start_datetime', '<', $end_datetime)
-        ->where('end_datetime', '>', $start_datetime)
-        ->exists();
-}
+    {
+    
+        return !Reservation::where('room_id', $room_id)
+            ->where('start_datetime', '<', $end_datetime)
+            ->where('end_datetime', '>', $start_datetime)
+            ->exists();
+    }
+
+
+    public function Accept(Reservation $reservation)
+    {
+        $reservation->update(['status' => 'Accepted']);
+        return response()->json(['success' => true]);
+    }
+
+    public function Decline(Reservation $reservation)
+    {
+        $reservation->update(['status' => 'Declined']);
+        return response()->json(['success' => true]);
+    }
+
+
+    public function Edit(Request $request, Reservation $reservation)
+    {
+        $fields = $request->validate([
+            'purpose' => ['required'],
+            'title' => ['required'],
+            'start_datetime' => ['required'],
+            'end_datetime' => ['required'],
+            'room_id' => ['nullable'],
+        ]);
+
+
+        $reservation->update($fields);
+        return response()->json(['success' => true]);
+
+    }
+
+    public function Remove(Reservation $reservation)
+    {
+        $reservation->update(['status' => 'Deleted']);
+        return response()->json(['success' => true]);
+    }
+
+    public function getReservation(Reservation $reservation)
+    {
+      return response()->json($reservation);
+    }
+
 }
