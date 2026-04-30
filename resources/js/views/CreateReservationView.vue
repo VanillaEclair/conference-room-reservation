@@ -12,7 +12,7 @@
             </select>
 
             <input type="file">
-            <button type="submit">{{ isEditMode ? 'Update Reservation' : 'Submit Reservation' }}</button>
+            <button type="submit" :disabled="!isAvailable">{{ isEditMode ? 'Update Reservation' : 'Submit Reservation' }}</button>
             <h1>{{ roomInfo }}</h1>
         </form>
     </div>
@@ -44,7 +44,8 @@ export default {
             rooms: [],
             roomInfo: '',
             endDateMin: '',
-            error: ''
+            error: '',
+            isAvailable: true
         }
     },
     mounted() {
@@ -58,7 +59,7 @@ export default {
         const id = this.$route.params.id;
 
         if (id) {
-            console.log("English maddafakka! Do you speak it?");
+            console.log("Editing Mode");
             this.isEditMode = true;
             fetch(`/reservation/${id}`, { credentials: 'include' })
                 .then(response => response.json())
@@ -76,7 +77,7 @@ export default {
 
         }
         else {
-            console.log("Honey, where is my super suit?")
+            console.log("Creating Mode")
         }
     },
     setup() {
@@ -87,6 +88,7 @@ export default {
     methods: {
         setDateInput() {
             let startTime = new Date(this.form.start_datetime);
+            console.log(startTime);
             startTime.setHours(startTime.getHours() + 1);
             this.endDateMin = this.toLocalDatetime(startTime);
             this.form.end_datetime = '';
@@ -94,7 +96,7 @@ export default {
         },
 
         checkAvailability() {
-            if (!this.form.start_datetime || !this.form.end_datetime || !this.form.room_id) return;
+            if (!this.form.start_datetime || !this.form.end_datetime || !this.form.room_id) this.available=false; return;
 
             fetch('/availability', {
                 method: 'POST',
@@ -110,11 +112,13 @@ export default {
             })
                 .then(response => response.json())
                 .then(data => {
+                    this.isAvailable = data.available;
                     this.roomInfo = data.available ? 'Room is available' : 'Room is already booked';
                 });
         },
 
         async submitReservation() {
+
 
             const id = this.$route.params.id;
 

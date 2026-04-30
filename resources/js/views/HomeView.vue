@@ -1,10 +1,10 @@
 <template>
-   <h1>I'm so getting touched in my no no places</h1>
+   <h1>Test Main</h1>
    <button><router-link to="/login">GO here</router-link></button>
    <br>
    <button @click="logout">Log Out</button>
    <h2 v-if="auth.isLoggedIn">Authenticated</h2>
-   <h2 v-else>GTFO</h2>
+   <h2 v-else>Need to be Authenticated</h2>
 </template>
 
 <script>

@@ -74,7 +74,6 @@ export default {
     {
 
         async logout() {
-            console.log("is this a joke?");
             await this.auth.logout();
             this.$router.push('/login');
         },
