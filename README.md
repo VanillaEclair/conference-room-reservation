@@ -20,7 +20,7 @@ platform for managing rooms and reservations.
 ## Status
 
 !!! Currently in active development. Core CRUD operations and reservation 
-logic implemented. Frontend UI in progress.
+logic implemented. Core business logic and Frontend UI in progress.
 
 ## Getting Started
 
