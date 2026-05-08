@@ -40,7 +40,7 @@ Route::post('/create-user',[UserController::class,'createUser']);
 
 Route::post('/logout',[UserController::class,'logout']);
 
-Route::post('/availability',[ReservationController::class,'checkSched']);
+Route::post('/availability/{id}',[ReservationController::class,'checkSched']);
 
 
 

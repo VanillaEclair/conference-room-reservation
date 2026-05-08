@@ -2,17 +2,20 @@
     <div class="Main-body">
         <form @submit.prevent="submitReservation">
             <input type="text" v-model="form.title" placeholder="title">
-            <input type="datetime-local" v-model="form.start_datetime" id="start_datetime" @change="setDateInput">
+            <input type="datetime-local" v-model="form.start_datetime" id="start_datetime" @change="setDateInput" >
             <input type="datetime-local" v-model="form.end_datetime" id="end_datetime" :disabled="!form.start_datetime"
                 :min="endDateMin">
             <textarea v-model="form.purpose" placeholder="reason for renting"></textarea>
-            <select v-model="form.room_id" @change="checkAvailability">
+            <select v-model="form.room_id">
                 <option value="" disabled selected>Select room</option>
                 <option v-for="room in rooms" :key="room.id" :value="room.id">{{ room.name }}</option>
             </select>
 
             <input type="file">
-            <button type="submit" :disabled="!isAvailable">{{ isEditMode ? 'Update Reservation' : 'Submit Reservation' }}</button>
+            <button id="submit" type="submit" :disabled="!isAvailable">{{ isEditMode ? 'Update Reservation' : 'Submit Reservation' }}</button>
+            <div class="" style="background-color: red;">
+                <button @click="$router.push('/')">Cancel</button>
+            </div>
             <h1>{{ roomInfo }}</h1>
         </form>
     </div>
@@ -22,7 +25,7 @@
     </div>
 
     <div>
-        <button @click="$router.push('/create-room')">Create a Room</button>
+        <button @click="$router.push('/create-room')" disabled="true">Create a Room</button>
     </div>
 </template>
 
@@ -43,9 +46,11 @@ export default {
             isEditMode: false,
             rooms: [],
             roomInfo: '',
+            startdatemin: '',
             endDateMin: '',
             error: '',
-            isAvailable: true
+            isAvailable: false,
+            reservation_id: ''
         }
     },
     mounted() {
@@ -57,9 +62,17 @@ export default {
             });
 
         const id = this.$route.params.id;
+        this.reservation_id = id;
+        let date = new Date();
+        
+        this.startdatemin = date.getFullYear() + '-' +
+                String(date.getMonth() + 1).padStart(2, '0') + '-' +
+                String(date.getDate()).padStart(2, '0') + 'T' +
+                String(date.getHours()).padStart(2, '0') + ':' +
+                String(date.getMinutes()).padStart(2, '0');
 
         if (id) {
-            console.log("Editing Mode");
+            console.log(id);
             this.isEditMode = true;
             fetch(`/reservation/${id}`, { credentials: 'include' })
                 .then(response => response.json())
@@ -77,7 +90,7 @@ export default {
 
         }
         else {
-            console.log("Creating Mode")
+            console.log(id);
         }
     },
     setup() {
@@ -85,21 +98,54 @@ export default {
         console.log(auth.user);
         return { auth };
     },
-    methods: {
-        setDateInput() {
-            let startTime = new Date(this.form.start_datetime);
-            console.log(startTime);
-            startTime.setHours(startTime.getHours() + 1);
-            this.endDateMin = this.toLocalDatetime(startTime);
-            this.form.end_datetime = '';
+    watch: {
+        'form.end_datetime'(newVal) {
+            if(newVal && newVal < this.endDateMin) 
+            {
+                this.form.end_datetime = this.endDateMin;
+            }
             this.checkAvailability();
         },
 
-        checkAvailability() {
-            if (!this.form.start_datetime || !this.form.end_datetime || !this.form.room_id) this.available=false; return;
+        'form.start_datetime'(newVal)
+        {
+            if(newVal && newVal < this.startdatemin)
+            {
+                this.form.start_datetime = this.startdatemin;
+            }
+            this.checkAvailability();
+        },
+        'form.room_id'(room_id)
+        {
+            this.checkAvailability();
+        }
 
-            fetch('/availability', {
-                method: 'POST',
+    },
+    methods: {
+
+        
+        setDateInput() {
+            let startTime = new Date(this.form.start_datetime);
+            startTime.setHours(startTime.getHours() + 1); 
+            this.endDateMin =  this.toLocalDatetime(startTime);
+            console.log(this.endDateMin);
+            this.form.end_datetime = '';
+            this.checkAvailability();
+            
+        },
+
+        async checkAvailability() {
+
+            if (!this.form.start_datetime || !this.form.end_datetime || !this.form.room_id)
+            {
+                this.isAvailable=false;
+                return;
+            }
+            
+            console.log("check:" + this.reservation_id);
+            const url = `/availability/${this.reservation_id}`;
+            const response = await fetch(url, {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -110,15 +156,21 @@ export default {
                     endtime: this.form.end_datetime
                 })
             })
-                .then(response => response.json())
-                .then(data => {
-                    this.isAvailable = data.available;
-                    this.roomInfo = data.available ? 'Room is available' : 'Room is already booked';
-                });
+
+            const data = await response.json();
+            this.isAvailable = data.available;
+            console.log(this.isAvailable);
+            this.roomInfo = data.available? 'Room is Available' : 'Room is Already Booked';
         },
+
 
         async submitReservation() {
 
+
+                if(this.form.end_datetime <= this.form.start_datetime) {
+                    this.error = 'End time must be after start time';
+                    return;
+                }
 
             const id = this.$route.params.id;
 

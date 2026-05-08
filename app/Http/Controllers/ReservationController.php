@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 class ReservationController extends Controller
 {
 
-    //Add user to reservation relationship
     public function createReservation(Request $request)
     {
         $incomingFields = $request->validate([
@@ -57,28 +56,32 @@ class ReservationController extends Controller
 
     }
 
-    //depriciated
-    // public function showReservations(Reservation $reservation)
-    // {
-    //     return view('accepting', ['reservation' => $reservation]);
-    // }
-
     public function checkSched(Request $request)
     {
         $available = $this->isRoomAvailable(
             $request->room_id,
             $request->starttime,
-            $request->endtime
+            $request->endtime,
+            $request->id
         );
 
         return response()->json(['available' => $available]);
 
     }
 
-    //data
-    private function isRoomAvailable($room_id, $start_datetime, $end_datetime)
+    //CHANGING HERE
+    private function isRoomAvailable($room_id, $start_datetime, $end_datetime, $id)
     {
-    
+
+        if($id)
+        {
+            return !Reservation::where('room_id', $room_id)
+                ->where('start_datetime','<', $end_datetime)
+                ->where('end_datetime', '>', $start_datetime)
+                ->where('id', '!=', $id)->exists();
+        }
+
+
         return !Reservation::where('room_id', $room_id)
             ->where('start_datetime', '<', $end_datetime)
             ->where('end_datetime', '>', $start_datetime)
