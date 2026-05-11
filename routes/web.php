@@ -10,37 +10,34 @@ Route::get('/', function () {
     return view('app');
 });
 
+Route::middleware('validUser')->group(function ()
+{
+    Route::post('/create-reservation', [ReservationController::class,'createReservation']);
+    Route::post('/reservations/{reservation}/accept', [ReservationController::class, 'Accept']);
+    Route::post('/reservations/{reservation}/decline', [ReservationController::class, 'Decline']);
+    Route::put('/reservations/{reservation}/edit', [ReservationController::class, 'Edit']);
+    Route::post('/reservations/{reservation}/remove', [ReservationController::class, 'Remove']);
 
-Route::post('/create-reservation', [ReservationController::class,'createReservation']);
-// Route::post('/accept-reservation/{reservation}', [RoomController::class,'Accept']);
-Route::post('/reservations/{reservation}/accept', [ReservationController::class, 'Accept']);
-Route::post('/reservations/{reservation}/decline', [ReservationController::class, 'Decline']);
-Route::put('/reservations/{reservation}/edit', [ReservationController::class, 'Edit']);
-Route::post('/reservations/{reservation}/remove', [ReservationController::class, 'Remove']);
+    Route::get('/reservations-users', [UserController::class,'getUser']);
 
-Route::get('/reservations-users', [UserController::class,'getUser']);
+    Route::get('/reservations',[AcceptingController::class,'index']);
+    Route::get('/reservation/{reservation}', [ReservationController::class,'getReservation']);
+
+    //ROOM CONTROLLERS
+    Route::post('/create-room',[RoomController::class,'storeRoom']);
+    Route::get('/get-rooms',[RoomController::class,'getRooms']);
+
+    //USER CONTROLLERS
+    Route::post('/logout',[UserController::class,'logout']);
+    Route::post('/availability',[ReservationController::class,'checkSched']);
+    Route::post('/availability/{id}',[ReservationController::class,'checkSched']);
+});
 
 
-Route::get('/reservations',[AcceptingController::class,'index']);
-Route::get('/reservation/{reservation}', [ReservationController::class,'getReservation']);
 
-
-//ROOM CONTROLLERS
-// Route::get('/create-room-view',[RoomController::class,'createRoomView'])->name('room.view');
-Route::post('/create-room',[RoomController::class,'storeRoom']);
-Route::get('/get-rooms',[RoomController::class,'getRooms']);
-
-//USER CONTROLLERS
-
-// Route::get('/create-view',[UserController::class,'createView'])->name('user.create');
-
+//USER CONTROLLERS PUBLIC
 Route::post('/login',[UserController::class,'login']);
-
-Route::post('/create-user',[UserController::class,'createUser']);  
-
-Route::post('/logout',[UserController::class,'logout']);
-
-Route::post('/availability/{id}',[ReservationController::class,'checkSched']);
+Route::post('/create-user',[UserController::class,'createUser']); 
 
 
 

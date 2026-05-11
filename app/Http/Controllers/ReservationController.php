@@ -56,13 +56,13 @@ class ReservationController extends Controller
 
     }
 
-    public function checkSched(Request $request)
+    public function checkSched(Request $request, $id=null)
     {
         $available = $this->isRoomAvailable(
             $request->room_id,
             $request->starttime,
             $request->endtime,
-            $request->id
+            $id
         );
 
         return response()->json(['available' => $available]);
@@ -70,22 +70,18 @@ class ReservationController extends Controller
     }
 
     //CHANGING HERE
-    private function isRoomAvailable($room_id, $start_datetime, $end_datetime, $id)
+    private function isRoomAvailable($room_id, $start_datetime, $end_datetime, $id=null)
     {
+        $query = Reservation::where('room_id', $room_id)
+                ->where('start_datetime','<', $end_datetime)
+                ->where('end_datetime', '>', $start_datetime);
 
         if($id)
         {
-            return !Reservation::where('room_id', $room_id)
-                ->where('start_datetime','<', $end_datetime)
-                ->where('end_datetime', '>', $start_datetime)
-                ->where('id', '!=', $id)->exists();
+                $query->where('id', '!=', $id)->exists();
         }
 
-
-        return !Reservation::where('room_id', $room_id)
-            ->where('start_datetime', '<', $end_datetime)
-            ->where('end_datetime', '>', $start_datetime)
-            ->exists();
+        return !$query->exists();
     }
 
 

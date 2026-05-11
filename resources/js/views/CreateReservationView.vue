@@ -102,7 +102,7 @@ export default {
         'form.end_datetime'(newVal) {
             if(newVal && newVal < this.endDateMin) 
             {
-                this.form.end_datetime = this.endDateMin;
+                //this.form.end_datetime = this.endDateMin;
             }
             this.checkAvailability();
         },
@@ -111,7 +111,7 @@ export default {
         {
             if(newVal && newVal < this.startdatemin)
             {
-                this.form.start_datetime = this.startdatemin;
+                //this.form.start_datetime = this.startdatemin;
             }
             this.checkAvailability();
         },
@@ -143,7 +143,10 @@ export default {
             }
             
             console.log("check:" + this.reservation_id);
-            const url = `/availability/${this.reservation_id}`;
+            const url = this.reservation_id
+                 ?`/availability/${this.reservation_id}`
+                 : '/availability';
+
             const response = await fetch(url, {
                 method: "POST",
                 headers: {

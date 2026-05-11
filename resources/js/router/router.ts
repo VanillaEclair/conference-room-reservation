@@ -42,9 +42,18 @@ const router = createRouter({
     routes,
 });
 
+let userFetched = false;
+
 router.beforeEach(async (to) => {
     const auth = useAuthStore();
-    await auth.fetchUser();
+
+    if(!userFetched)
+    {
+        
+        await auth.fetchUser();
+        userFetched = true;
+    }
+
 
     if (to.meta.requiresGuest && auth.isLoggedIn) {
         return "/";
